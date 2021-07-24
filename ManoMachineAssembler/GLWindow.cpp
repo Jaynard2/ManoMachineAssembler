@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 
 #include "OpenGLFailure.h"
 #include "Character.h"
@@ -300,7 +301,7 @@ void GLWindow::passTwo()
 		return;
 	}
 
-	std::map<std::string, unsigned> cmds;
+	std::map<std::string, unsigned short> cmds;
 	cmds.emplace(std::make_pair("AND", 0x0000));
 	cmds.emplace(std::make_pair("ADD", 0x1000));
 	cmds.emplace(std::make_pair("LDA", 0x2000));
@@ -340,6 +341,8 @@ void GLWindow::passTwo()
 		if (tmp == "" || std::all_of(tmp.begin(), tmp.end(), isspace))
 			continue;
 
+		tmp.push_back(' ');
+
 		if (tmp.find("ORG") != tmp.npos)
 		{
 			std::stringstream converter;
@@ -369,7 +372,7 @@ void GLWindow::passTwo()
 				return;
 			}
 
-			unsigned dataNum;
+			short dataNum;
 			std::stringstream ss1;
 
 			if (cmd == "HEX")
@@ -378,15 +381,16 @@ void GLWindow::passTwo()
 				ss1 << std::dec << data;
 
 			ss1 >> dataNum;
-			result << std::hex << counter++ << ": " << dataNum << '\n';
+			result << std::setfill('0') << std::setw(3) << std::hex << counter++ << ": " 
+				<< std::setfill('0') << std::setw(4) << dataNum << '\n';
 
 			continue;
 		}
 
 		if (cmd == "END")
-			cmd = "HLT";
+			break;
 
-		unsigned memory;
+		unsigned short memory;
 
 		try
 		{
@@ -407,7 +411,7 @@ void GLWindow::passTwo()
 		}
 		else
 		{
-			int dataNum;
+			short dataNum;
 
 			unsigned back = tmp.find_first_not_of(" ", front + 4);
 
@@ -442,13 +446,14 @@ void GLWindow::passTwo()
 				ss1 >> dataNum;
 			}
 
-			if (tmp.find(" I ", 9) != cmd.npos)
+			if (tmp.find(" I ") != cmd.npos)
 				dataNum += 0b1000000000000000;
 			
 			memory += dataNum;
 		}
 
-		result << std::hex << counter << ": " << std::hex << memory << '\n';
+		result << std::setfill('0') << std::setw(3) << std::hex << counter << ": "
+			<< std::hex << memory << '\n';
 
 		counter++;
 	}
